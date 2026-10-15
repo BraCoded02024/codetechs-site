@@ -50,8 +50,8 @@ function Company() {
 
 const boardMembers = [
   { id: '01', role: 'Founder & CEO', photo: '/images/board/ceo.webp', bio: 'A Senior Software Engineer with years of experience building custom software and digital products. Leads CODETECHS’ technical vision from idea through delivery.' },
-  { id: '02', role: 'Operations Manager', photo: '/images/board/operations-manager.webp', bio: 'About Me: I’m a passionate Machine Learning enthusiast with a foundation in developing algorithms, models, and techniques that enable computers to learn from data.' },
-  { id: '03', role: 'Administrative Secretary', photo: '/images/board/administrative-secretary.jpg', bio: 'Supports CODETECHS through research and administrative coordination, helping keep information organized and day-to-day work moving.' },
+  { id: '02', role: 'Operations Manager', photo: '/images/board/operations-manager.webp', bio: 'Keeps CODETECHS moving with clear plans, steady coordination, and follow-through from first brief to delivery. Brings order to the work so the team can stay focused on building.' },
+  { id: '03', role: 'Administrative Secretary', photo: '/images/board/administrative-secretary.jpg', bio: 'Holds the studio’s details together, from correspondence and records to the quiet coordination behind every project. Keeps people and information in step so the work never loses its place.' },
 ];
 
 function BoardMembers() {
