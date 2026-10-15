@@ -188,24 +188,27 @@ function Room({ progress, active, mobile = false }: { progress: React.MutableRef
     const q = smooth.current;
     if (mobile && camera instanceof THREE.PerspectiveCamera) {
       const roomReveal = THREE.MathUtils.smoothstep(q, .24, .5);
-      const nextFov = THREE.MathUtils.lerp(58, 88, roomReveal);
+      // Keep a moderate phone lens so the gate crown and wall-screen tops stay inside the frame.
+      const nextFov = THREE.MathUtils.lerp(52, 64, roomReveal);
       if (Math.abs(camera.fov - nextFov) > .08) { camera.fov = nextFov; camera.updateProjectionMatrix(); }
     }
     const fly = THREE.MathUtils.smoothstep(q, .13, .43);
     const orbit = THREE.MathUtils.smoothstep(q, .39, .69);
     const wallTravel = THREE.MathUtils.clamp((q - .48) / .4 * 4, 0, 4);
-    const angle = THREE.MathUtils.lerp(-.3, -3.1, wallTravel / 4);
-    const radius = THREE.MathUtils.lerp(0, mobile ? 2.5 : 6.25, orbit);
-    // Portrait viewports need more distance at the gate and a more central
-    // boardroom path so overhead rings and wall screens stay inside the frame.
-    const entranceZ = mobile ? 36 : 17, boardroomZ = mobile ? 3.2 : 8.4;
-    cameraGoal.set(Math.sin(angle) * radius, (mobile ? 2.45 : 2.05) + orbit * .35, THREE.MathUtils.lerp(entranceZ, boardroomZ, fly) * (1 - orbit) + Math.cos(angle) * radius * orbit);
+    const swept = THREE.MathUtils.lerp(-.3, -3.1, wallTravel / 4);
+    const screenAngles = [-.3, -1, -1.7, -2.4, -3.1];
+    // On a phone, look straight at a screen instead of the gap between them,
+    // so the top of the display stays inside the frame.
+    const angle = mobile ? screenAngles[Math.round(THREE.MathUtils.clamp(wallTravel, 0, 4))] : swept;
+    const radius = THREE.MathUtils.lerp(0, mobile ? 2.8 : 6.25, orbit);
+    const entranceZ = mobile ? 32 : 17, boardroomZ = mobile ? 9.4 : 8.4;
+    cameraGoal.set(Math.sin(angle) * radius, 2.05 + orbit * (mobile ? .1 : .35), THREE.MathUtils.lerp(entranceZ, boardroomZ, fly) * (1 - orbit) + Math.cos(angle) * radius * orbit);
     const finish = THREE.MathUtils.smoothstep(q, .93, .99);
     cameraGoal.lerp(contactPosition, finish);
     camera.position.lerp(cameraGoal, 1 - Math.exp(-dt * 2.1));
     const wallFocus = THREE.MathUtils.smoothstep(q, .48, .56);
     const targetRadius = 9.25 * wallFocus;
-    targetGoal.set(Math.sin(angle) * targetRadius, THREE.MathUtils.lerp(1.05, 1.9, wallFocus), Math.cos(angle) * targetRadius);
+    targetGoal.set(Math.sin(angle) * targetRadius, mobile ? THREE.MathUtils.lerp(1.7, 1.5, wallFocus) : THREE.MathUtils.lerp(1.05, 1.9, wallFocus), Math.cos(angle) * targetRadius);
     targetGoal.lerp(contactTarget, finish);
     camera.lookAt(targetGoal);
     const open = THREE.MathUtils.smoothstep(q, .025, .27);
@@ -256,7 +259,7 @@ export function ImmersiveOffice() {
   const target = useRef<HTMLElement>(null), progress = useRef(0);
   const { scrollYProgress } = useScroll({ target, offset: ['start start', 'end end'] });
   const spring = useSpring(scrollYProgress, { stiffness: 70, damping: 24, mass: .4 });
-  const [active, setActive] = useState(0), [fallback, setFallback] = useState(false), [smallScreen, setSmallScreen] = useState(false), [typed, setTyped] = useState(''), [showCta, setShowCta] = useState(false);
+  const [active, setActive] = useState(0), [fallback, setFallback] = useState(false), [smallScreen, setSmallScreen] = useState(() => typeof window !== 'undefined' && matchMedia('(max-width: 680px)').matches), [typed, setTyped] = useState(''), [showCta, setShowCta] = useState(false);
   useMotionValueEvent(spring, 'change', v => { progress.current = v; const idx = Math.min(walls.length - 1, Math.max(0, Math.round(THREE.MathUtils.clamp((v - .48) / .4 * 4, 0, 4)))); if (!fallback && v > .46) setActive(current => current === idx ? current : idx); const shouldShowCta = v > .94; setShowCta(current => current === shouldShowCta ? current : shouldShowCta); });
   useEffect(() => {
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -283,7 +286,7 @@ export function ImmersiveOffice() {
   const responsiveClass = smallScreen ? (fallback ? ' mobile-fallback' : ' mobile-cinematic') : '';
   return <section ref={target} className={`cinematic-journey${responsiveClass}`} id="home" aria-label="CODETECHS digital headquarters tour">
     <div className="cinematic-sticky">
-      {fallback ? <LowPower active={active} onSelect={setActive} /> : <SceneBoundary onError={() => setFallback(true)}><Canvas camera={{ position: [0, 1.55, smallScreen ? 36 : 17], fov: smallScreen ? 58 : 52 }} dpr={smallScreen ? [1, 1] : [1, 1.5]} gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}><Suspense fallback={<LoadingRoom />}><Room progress={progress} active={active} mobile={smallScreen} /></Suspense></Canvas></SceneBoundary>}
+      {fallback ? <LowPower active={active} onSelect={setActive} /> : <SceneBoundary onError={() => setFallback(true)}><Canvas camera={{ position: [0, 2.05, smallScreen ? 32 : 17], fov: smallScreen ? 52 : 52 }} dpr={smallScreen ? [1, 1] : [1, 1.5]} gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}><Suspense fallback={<LoadingRoom />}><Room progress={progress} active={active} mobile={smallScreen} /></Suspense></Canvas></SceneBoundary>}
       <div className="cinematic-vignette" />
       <div className="cinematic-top"><span>CODETECHS <i>/</i> DIGITAL HEADQUARTERS</span><span><b /> TOUR MODE · SIMULATED</span></div>
       <motion.div className="concierge-console" style={{ opacity, y: conciergeY }}>
