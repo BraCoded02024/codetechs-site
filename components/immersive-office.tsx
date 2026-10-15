@@ -263,8 +263,10 @@ export function ImmersiveOffice() {
     const small = matchMedia('(max-width: 680px)');
     const canvas = document.createElement('canvas');
     const webgl = Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'));
-    const lowPower = (navigator.hardwareConcurrency || 8) <= 4 || ((navigator as Navigator & { deviceMemory?: number }).deviceMemory || 8) <= 2;
-    const updateFallback = () => { setSmallScreen(small.matches); setFallback(reduced.matches || lowPower || !webgl); };
+    // Phones should still get the animated headquarters whenever WebGL works.
+    // Reserve the static room for devices that cannot render WebGL or explicitly
+    // request reduced motion; a low core count alone should not hide the entry.
+    const updateFallback = () => { setSmallScreen(small.matches); setFallback(reduced.matches || !webgl); };
     updateFallback();
     small.addEventListener('change', updateFallback);
     reduced.addEventListener('change', updateFallback);
