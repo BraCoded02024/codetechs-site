@@ -73,8 +73,33 @@ function BoardMembers() {
   </section>;
 }
 
+const practices = [
+  { n: '01', title: 'Software', note: 'Web, mobile, and custom products' },
+  { n: '02', title: 'Business systems', note: 'Workflows and automation' },
+  { n: '03', title: 'Cloud', note: 'Secure, dependable foundations' },
+  { n: '04', title: 'Products', note: 'From idea through delivery' },
+];
+
+function HomeHero() {
+  return <section className="home-hero" id="home" aria-labelledby="home-title">
+    <div className="home-hero-main">
+      <div className="eyebrow"><span className="live-dot" /> ACCRA-FOUNDED · WORKING EVERYWHERE</div>
+      <h1 id="home-title">Software for companies<br />ready to <span className="accent">move.</span></h1>
+      <p>CODETECHS is an independent engineering studio. We design and build custom software, business systems, and cloud infrastructure with senior people and clear delivery.</p>
+      <div className="home-hero-actions">
+        <a className="button-primary" href="/contact">Start a project <ArrowRight size={14} /></a>
+        <a className="text-link" href="/solutions">Explore solutions <ArrowRight size={14} /></a>
+      </div>
+    </div>
+    <div className="home-hero-foot">
+      <a href="#headquarters">Scroll to enter the headquarters <ArrowRight size={13} /></a>
+      {practices.map(item => <div key={item.n}><span>{item.n}</span><strong>{item.title}</strong><small>{item.note}</small></div>)}
+    </div>
+  </section>;
+}
+
 export default function Home() {
-  return <><Header /><main><ImmersiveOffice /><div className="section-label"><span>CHAPTER 02</span><span>INSIDE THE STUDIO</span><span>↓</span></div><Experience /><div className="section-label section-label-alt"><span>CHAPTER 03</span><span>PROOF, NOT PROMISES</span><span>↓</span></div><Work /><Ecosystem /><Manifesto /><Company /><BoardMembers /><Contact /></main><footer className="footer"><a className="wordmark footer-wordmark" href="#home"><span className="wordmark-icon"><Hexagon size={18} /><span /></span><span>CODETECHS<sup>®</sup></span></a><span className="footer-center">INDEPENDENT BY NATURE. ENGINEERED FOR SCALE.</span><div className="footer-links"><a href="/solutions">SOLUTIONS</a><a href="/contact">LET’S BUILD</a><span>© 2026 CODETECHS®</span></div></footer></>;
+  return <><Header /><main><HomeHero /><ImmersiveOffice /><div className="section-label"><span>CHAPTER 02</span><span>INSIDE THE STUDIO</span><span>↓</span></div><Experience /><div className="section-label section-label-alt"><span>CHAPTER 03</span><span>PROOF, NOT PROMISES</span><span>↓</span></div><Work /><Ecosystem /><Manifesto /><Company /><BoardMembers /><Contact /></main><footer className="footer"><a className="wordmark footer-wordmark" href="#home"><span className="wordmark-icon"><Hexagon size={18} /><span /></span><span>CODETECHS<sup>®</sup></span></a><span className="footer-center">INDEPENDENT BY NATURE. ENGINEERED FOR SCALE.</span><div className="footer-links"><a href="/solutions">SOLUTIONS</a><a href="/contact">LET’S BUILD</a><span>© 2026 CODETECHS®</span></div></footer></>;
 }
 
 

@@ -192,7 +192,7 @@ function Room({ progress, active, mobile = false }: { progress: React.MutableRef
       const nextFov = THREE.MathUtils.lerp(52, 64, roomReveal);
       if (Math.abs(camera.fov - nextFov) > .08) { camera.fov = nextFov; camera.updateProjectionMatrix(); }
     }
-    const fly = THREE.MathUtils.smoothstep(q, .13, .43);
+    const fly = THREE.MathUtils.smoothstep(q, .02, .36);
     const orbit = THREE.MathUtils.smoothstep(q, .39, .69);
     const wallTravel = THREE.MathUtils.clamp((q - .48) / .4 * 4, 0, 4);
     const swept = THREE.MathUtils.lerp(-.3, -3.1, wallTravel / 4);
@@ -259,7 +259,7 @@ export function ImmersiveOffice() {
   const target = useRef<HTMLElement>(null), progress = useRef(0);
   const { scrollYProgress } = useScroll({ target, offset: ['start start', 'end end'] });
   const spring = useSpring(scrollYProgress, { stiffness: 70, damping: 24, mass: .4 });
-  const [active, setActive] = useState(0), [fallback, setFallback] = useState(false), [smallScreen, setSmallScreen] = useState(() => typeof window !== 'undefined' && matchMedia('(max-width: 680px)').matches), [typed, setTyped] = useState(''), [showCta, setShowCta] = useState(false);
+  const [active, setActive] = useState(0), [fallback, setFallback] = useState(false), [smallScreen, setSmallScreen] = useState(() => typeof window !== 'undefined' && matchMedia('(max-width: 680px)').matches), [showCta, setShowCta] = useState(false);
   useMotionValueEvent(spring, 'change', v => { progress.current = v; const idx = Math.min(walls.length - 1, Math.max(0, Math.round(THREE.MathUtils.clamp((v - .48) / .4 * 4, 0, 4)))); if (!fallback && v > .46) setActive(current => current === idx ? current : idx); const shouldShowCta = v > .94; setShowCta(current => current === shouldShowCta ? current : shouldShowCta); });
   useEffect(() => {
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -275,27 +275,15 @@ export function ImmersiveOffice() {
     reduced.addEventListener('change', updateFallback);
     return () => { small.removeEventListener('change', updateFallback); reduced.removeEventListener('change', updateFallback); };
   }, []);
-  const welcome = 'Welcome to CODETECHS.\n\nA world of engineering talent. One mission: building technology that moves businesses forward. Scroll to explore our world.';
-  useEffect(() => { if (fallback) { setTyped(welcome); return; } let i = 0; const timer = window.setInterval(() => { i += 2; setTyped(welcome.slice(0, i)); if (i >= welcome.length) window.clearInterval(timer); }, 23); return () => window.clearInterval(timer); }, [fallback]);
-  const enter = () => { if (!target.current) return; if (fallback) { document.querySelector('.cinematic-side')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; } window.scrollTo({ top: target.current.offsetTop + window.innerHeight * 2.7, behavior: 'smooth' }); };
-  const opacity = useTransform(spring, v => 1 - THREE.MathUtils.smoothstep(v, .13, .31));
-  const conciergeY = useTransform(opacity, v => (1 - v) * -22);
   const hud = useTransform(spring, v => THREE.MathUtils.smoothstep(v, .3, .46) * (1 - THREE.MathUtils.smoothstep(v, .94, .975)));
   const ctaOpacity = useTransform(spring, v => THREE.MathUtils.smoothstep(v, .94, .985));
   const Icon = walls[active].icon;
   const responsiveClass = smallScreen ? (fallback ? ' mobile-fallback' : ' mobile-cinematic') : '';
-  return <section ref={target} className={`cinematic-journey${responsiveClass}`} id="home" aria-label="CODETECHS digital headquarters tour">
+  return <section ref={target} className={`cinematic-journey${responsiveClass}`} id="headquarters" aria-label="CODETECHS digital headquarters tour">
     <div className="cinematic-sticky">
       {fallback ? <LowPower active={active} onSelect={setActive} /> : <SceneBoundary onError={() => setFallback(true)}><Canvas camera={{ position: [0, 2.05, smallScreen ? 32 : 17], fov: smallScreen ? 52 : 52 }} dpr={smallScreen ? [1, 1] : [1, 1.5]} gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}><Suspense fallback={<LoadingRoom />}><Room progress={progress} active={active} mobile={smallScreen} /></Suspense></Canvas></SceneBoundary>}
       <div className="cinematic-vignette" />
       <div className="cinematic-top"><span>CODETECHS <i>/</i> DIGITAL HEADQUARTERS</span><span><b /> TOUR MODE · SIMULATED</span></div>
-      <motion.div className="concierge-console" style={{ opacity, y: conciergeY }}>
-        <h1 className="sr-only">CODETECHS Digital Headquarters</h1>
-        <div className="console-bar"><span>CT<span>·</span></span><span>ARRIVAL CONCIERGE</span><span className="console-status"><i /> READY</span></div>
-        <div className="console-kicker">A WORLD OF ENGINEERING TALENT</div>
-        <p className="concierge-message">{typed}{typed.length < welcome.length && <span className="typing-caret">▋</span>}</p>
-        <div className="console-bottom"><button className="button-primary" onClick={enter}>SECURE ACCESS &amp; ENTER <ArrowRight size={14} /></button><span>SCROLL TO EXPLORE <i>↓</i></span></div>
-      </motion.div>
       <motion.div className="cinematic-side" style={{ opacity: hud }}>
         <div className="wall-index">{walls.map((w, i) => <button key={w.short} onClick={() => { setActive(i); if (!fallback && target.current) window.scrollTo({ top: target.current.offsetTop + window.innerHeight * (.54 + i * .095), behavior: 'smooth' }); }} className={active === i ? 'selected' : ''} aria-label={`View ${w.title}`}><span>0{i + 1}</span></button>)}</div>
         <div className="wall-card" aria-live="polite"><div className="wall-card-kicker">DIVISION / 0{active + 1} <span>DISPLAY MODE</span></div><div className="wall-card-title"><Icon size={20} /><h2>{walls[active].title}</h2></div><p>{walls[active].copy}</p><ul className="wall-points">{panelContent[active].points.map(point => <li key={point}>{point}</li>)}</ul><div className="wall-screenline">{walls[active].screen}<span>{walls[active].metric}</span></div><div className="wall-tags">{walls[active].tags.split(' · ').map(t => <span key={t}>{t}</span>)}</div><a className="wall-project-link" href={walls[active].href}>{walls[active].cta} <ArrowRight size={12} /></a><div className="wall-card-foot">ACCRA <span>↗</span> REMOTE COLLABORATION <i>●</i></div></div>
