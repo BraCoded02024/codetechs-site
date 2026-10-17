@@ -180,9 +180,34 @@ function MovingWallBricks({ progress, mobile }: { progress: React.MutableRefObje
   </instancedMesh>;
 }
 
+function EntranceDoors({ open }: { open: React.MutableRefObject<number> }) {
+  const left = useRef<THREE.Group>(null), right = useRef<THREE.Group>(null);
+  useFrame(() => {
+    const angle = open.current * 1.7;
+    if (left.current) left.current.rotation.y = -angle;
+    if (right.current) right.current.rotation.y = angle;
+  });
+  const leaf = (side: 1 | -1) => <group ref={side < 0 ? left : right} position={[side * 2.05, 1.68, 0]}>
+    <mesh position={[side * -1.025, 0, 0]}><boxGeometry args={[2.05, 3.36, .12]} /><meshStandardMaterial color="#242826" metalness={.58} roughness={.4} emissive="#16140f" emissiveIntensity={.35} /></mesh>
+    <mesh position={[side * -1.025, .02, .075]}><boxGeometry args={[1.68, 2.72, .02]} /><meshStandardMaterial color="#141716" metalness={.42} roughness={.52} /></mesh>
+    <mesh position={[side * -1.78, .08, .1]}><boxGeometry args={[.055, .78, .045]} /><meshStandardMaterial color="#c6a15a" metalness={.72} roughness={.28} /></mesh>
+    <mesh position={[side * -2.01, 0, .08]}><boxGeometry args={[.03, 3.16, .02]} /><meshBasicMaterial color="#edbd3f" /></mesh>
+  </group>;
+  return <group position={[0, 0, 13.15]}>
+    {leaf(-1)}{leaf(1)}
+    {[-1, 1].map(side => <mesh key={side} position={[side * 2.24, 1.78, 0]}><boxGeometry args={[.32, 3.72, .32]} /><meshStandardMaterial color="#121413" metalness={.7} roughness={.32} /></mesh>)}
+    <mesh position={[0, 3.58, 0]}><boxGeometry args={[4.8, .32, .32]} /><meshStandardMaterial color="#121413" metalness={.7} roughness={.32} /></mesh>
+    <mesh position={[0, 3.36, .17]}><boxGeometry args={[4.15, .035, .02]} /><meshBasicMaterial color="#edbd3f" /></mesh>
+    {[-1, 1].map(side => <mesh key={`wall-${side}`} position={[side * 4.02, 2.08, 0]}><boxGeometry args={[3.28, 4.2, .18]} /><meshStandardMaterial color="#171a1a" metalness={.62} roughness={.36} /></mesh>)}
+    <mesh position={[0, 3.95, 0]}><boxGeometry args={[4.5, .55, .18]} /><meshStandardMaterial color="#171a1a" metalness={.62} roughness={.36} /></mesh>
+    <mesh position={[0, .04, .08]}><boxGeometry args={[4.15, .08, .22]} /><meshStandardMaterial color="#2a2c2a" metalness={.5} roughness={.4} /></mesh>
+    <pointLight position={[0, 1.8, -.45]} color="#f0c95a" intensity={8} distance={9} />
+  </group>;
+}
+
 function Room({ progress, active, mobile = false }: { progress: React.MutableRefObject<number>; active: number; mobile?: boolean }) {
   const { camera } = useThree();
-  const smooth = useRef(0), irisRef = useRef<THREE.Group>(null), cameraGoal = useMemo(() => new THREE.Vector3(), []), targetGoal = useMemo(() => new THREE.Vector3(), []), contactPosition = useMemo(() => new THREE.Vector3(0, 1.6, -4.1), []), contactTarget = useMemo(() => new THREE.Vector3(0, 1.8, -10), []);
+  const smooth = useRef(0), doorOpen = useRef(0), cameraGoal = useMemo(() => new THREE.Vector3(), []), targetGoal = useMemo(() => new THREE.Vector3(), []), contactPosition = useMemo(() => new THREE.Vector3(0, 1.6, -4.1), []), contactTarget = useMemo(() => new THREE.Vector3(0, 1.8, -10), []);
   useFrame((state, dt) => {
     const p = progress.current; smooth.current = THREE.MathUtils.damp(smooth.current, p, 2.1, dt);
     const q = smooth.current;
@@ -208,11 +233,10 @@ function Room({ progress, active, mobile = false }: { progress: React.MutableRef
     camera.position.lerp(cameraGoal, 1 - Math.exp(-dt * 2.1));
     const wallFocus = THREE.MathUtils.smoothstep(q, .48, .56);
     const targetRadius = 9.25 * wallFocus;
-    targetGoal.set(Math.sin(angle) * targetRadius, mobile ? THREE.MathUtils.lerp(1.7, 1.5, wallFocus) : THREE.MathUtils.lerp(1.05, 1.9, wallFocus), Math.cos(angle) * targetRadius);
+    targetGoal.set(Math.sin(angle) * targetRadius, mobile ? THREE.MathUtils.lerp(1.7, 1.5, wallFocus) : THREE.MathUtils.lerp(1.5, 1.9, wallFocus), Math.cos(angle) * targetRadius);
     targetGoal.lerp(contactTarget, finish);
     camera.lookAt(targetGoal);
-    const open = THREE.MathUtils.smoothstep(q, .025, .27);
-    irisRef.current?.children.forEach((leaf, i) => { if (i < 8) { const m = leaf as THREE.Mesh; const a = i * Math.PI / 4; m.position.x = Math.cos(a) * open * 5.3; m.position.y = Math.sin(a) * open * 5.3; const material = m.material as THREE.MeshStandardMaterial; material.emissiveIntensity = .08 + THREE.MathUtils.smoothstep(q, .02, .12) * .45 * (1 - open); } });
+    doorOpen.current = THREE.MathUtils.smoothstep(q, .01, .16);
   });
   return <>
     <color attach="background" args={['#111515']} /><fog attach="fog" args={['#111515', 25, 52]} />
@@ -236,7 +260,7 @@ function Room({ progress, active, mobile = false }: { progress: React.MutableRef
       {[0, 1, 2, 3, 4, 5].map(i => { const a = i * Math.PI / 3 + Math.PI / 6; return <group key={i} position={[Math.sin(a) * 3, 0, Math.cos(a) * 3]} rotation={[0, a, 0]}><mesh position={[0, .55, 0]}><boxGeometry args={[.72, .13, .7]} /><meshStandardMaterial color="#343938" metalness={.32} roughness={.52} /></mesh><mesh position={[0, .92, -.24]}><boxGeometry args={[.72, .68, .12]} /><meshStandardMaterial color="#2d3331" metalness={.28} roughness={.54} /></mesh></group>; })}
     </group>
     <CodeFall />
-    <group ref={irisRef} position={[0, 1.5, 12.8]}>{Array.from({ length: 8 }, (_, i) => <mesh key={i} rotation={[0, 0, i * Math.PI / 4]}><ringGeometry args={[.035, 4.15, 24, 1, 0, Math.PI / 4]} /><meshStandardMaterial color="#24231e" metalness={.58} roughness={.34} side={THREE.DoubleSide} emissive="#a98737" emissiveIntensity={.24} /></mesh>)}<mesh><torusGeometry args={[4.18, .075, 10, 96]} /><meshBasicMaterial color="#edbd3f" /></mesh><mesh><torusGeometry args={[.45, .055, 8, 48]} /><meshBasicMaterial color="#f0d78f" /></mesh>{Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4; return <group key={`lock-${i}`} position={[Math.cos(a) * 3.95, Math.sin(a) * 3.95, .04]} rotation={[0, 0, a]}><mesh><boxGeometry args={[.42, .13, .1]} /><meshStandardMaterial color="#44443d" metalness={.55} roughness={.4} emissive="#8b713a" emissiveIntensity={.2} /></mesh><mesh position={[0, 0, .06]}><boxGeometry args={[.24, .025, .015]} /><meshBasicMaterial color="#edbd3f" /></mesh></group>; })}</group>
+    <EntranceDoors open={doorOpen} />
   </>;
 }
 
