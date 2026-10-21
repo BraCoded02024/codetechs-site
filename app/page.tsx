@@ -48,8 +48,8 @@ function Company() {
   return <section className="company-section section-pad" id="company"><div className="company-heading"><div><div className="eyebrow"><span className="section-dot" /> THE PEOPLE BEHIND THE PROGRESS</div><h2>Local roots.<br /><span className="accent">Global</span> perspective.</h2></div><p>We started in Accra with a simple belief: great engineering has no postcode. Now we work across borders, time zones, and industries, building with people who share our appetite for what’s possible.</p></div><div className="process-row">{[{ n: '01', title: 'Listen closely.', body: 'We understand your world before we write a line of code.' }, { n: '02', title: 'Make a plan.', body: 'Clear milestones, clear communication, no surprises.' }, { n: '03', title: 'Build together.', body: 'Work in the open. Iterate with purpose. Ship with care.' }, { n: '04', title: 'Keep moving.', body: 'Deployment is a beginning. We’re here for what comes next.' }].map(step => <div className="process-step" key={step.n}><span className="process-number">{step.n} <span>—</span></span><h3>{step.title}</h3><p>{step.body}</p></div>)}</div></section>;
 }
 
-const boardMembers = [
-  { id: '01', role: 'Founder & CEO', photo: '/images/board/ceo.webp', bio: 'A Senior Software Engineer with years of experience building custom software and digital products. Leads CODETECHS’ technical vision from idea through delivery.' },
+const boardMembers: Array<{ id: string; role: string; name?: string; photo: string; bio: string }> = [
+  { id: '01', role: 'Founder & CEO', name: 'Bernard Owusu', photo: '/images/board/ceo.webp', bio: 'Bernard Owusu, founder of CODETECHS, is a Senior Software Engineer with years of experience building custom software and digital products. He leads the studio’s technical vision from idea through delivery.' },
   { id: '02', role: 'Operations Manager', photo: '/images/board/operations-manager.webp', bio: 'Keeps CODETECHS moving with clear plans, steady coordination, and follow-through from first brief to delivery. Brings order to the work so the team can stay focused on building.' },
   { id: '03', role: 'Administrative Secretary', photo: '/images/board/administrative-secretary.jpg', bio: 'Holds the studio’s details together, from correspondence and records to the quiet coordination behind every project. Keeps people and information in step so the work never loses its place.' },
 ];
@@ -63,10 +63,10 @@ function BoardMembers() {
     <div className="board-grid">
       {boardMembers.map((member) => <article className="board-card" key={member.id}>
         <div className="board-portrait">
-          {member.photo ? <img src={member.photo} alt={`${member.role} at CODETECHS`} /> : <div className="board-portrait-placeholder" aria-label={`Portrait to be added for ${member.role}`} role="img"><UserRound size={38} strokeWidth={1} /><span>PORTRAIT TO BE ADDED</span></div>}
+          {member.photo ? <img src={member.photo} alt={member.name ? `${member.name}, ${member.role} of CODETECHS` : `${member.role} at CODETECHS`} /> : <div className="board-portrait-placeholder" aria-label={`Portrait to be added for ${member.role}`} role="img"><UserRound size={38} strokeWidth={1} /><span>PORTRAIT TO BE ADDED</span></div>}
           <span className="board-index">BOARD / {member.id}</span>
         </div>
-        <div className="board-member-meta"><h3>{member.role}</h3><span>CODETECHS LEADERSHIP</span></div>
+        <div className="board-member-meta"><div><h3>{member.role}</h3>{member.name && <p className="board-member-name">{member.name}</p>}</div><span>CODETECHS LEADERSHIP</span></div>
         {member.bio && <p className="board-member-bio">{member.bio}</p>}
       </article>)}
     </div>
